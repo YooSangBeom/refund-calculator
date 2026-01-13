@@ -5,7 +5,7 @@
   <title>화이트펜슬 환불 계산기</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: Arial, sans-serif; background:#f5f6f8; padding:20px; }
+    body { font-family: Arial, sans-serif; background:#f5f6f8; padding:20px; margin:0; }
     .card { max-width:560px; margin:auto; background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,.1); }
     h2 { margin-top:0; }
     label { display:block; margin-top:12px; font-weight:600; }
@@ -13,8 +13,13 @@
     button { margin-top:20px; width:100%; padding:12px; font-size:16px; border:none; border-radius:8px; background:#2563eb; color:#fff; cursor:pointer; }
     .result { margin-top:16px; padding:12px; background:#f1f5f9; border-radius:8px; font-weight:600; }
     .note { margin-top:12px; font-size:13px; color:#555; }
-  .warning-text { color: #d32f2f; font-weight: 600; }
-</style>
+    .warning-text { color:#d32f2f; font-weight:600; font-size:13px; }
+    .made-by { text-align:right; font-size:12px; color:#555; margin-top:10px; }
+    .refund-link { margin-top:12px; text-align:center; }
+    .refund-link a { display:inline-block; padding:10px 20px; background:#2563eb; color:#fff; border-radius:8px; text-decoration:none; font-weight:600; }
+    .refund-rule { margin-top:20px; text-align:center; }
+    .refund-rule img { max-width:100%; border-radius:8px; }
+  </style>
 </head>
 <body>
 <div class="card">
@@ -49,8 +54,8 @@
     <input type="date" id="timeRefundDate" />
 
     <label>잔여 시간</label>
-    <input type="number" id="remainHours" min="0" />
-    <div id="remainHelp" style="margin-top:4px;font-size:12px;color:#555;"><span class="warning-text">※ 최종 구매 이용권 구매 이후 사용시간을 제외한 시간을 입력해주세요. (재구매를 통한 이전 만료 이용권의 시간은 환불 대상이 아닙니다)</span></div>
+    <input type="number" id="remainHours" />
+    <div class="warning-text">※ 최종 구매 이용권 구매 이후 사용시간을 제외한 시간을 입력해주세요.(재구매를 통한 이전 만료이용권의 시간은 환불대상이 아닙니다)</div>
   </div>
 
   <!-- 기간권 -->
@@ -98,23 +103,24 @@
   <div class="result" id="result">환불 금액: -</div>
   <div class="result" id="reason" style="font-weight:600; font-size:14px; color:#d32f2f;">적용 규정: -</div>
 
+  <div class="refund-link">
+    <a href="https://forms.gle/Gwgs2sKAMzU4MDBw9" target="_blank">환불접수하기</a>
+  </div>
+
   <div class="note">
     * 당일권은 환불 불가<br>
     * 사용률 50% 이상은 환불 불가<br>
     * 연장으로 합산된 시간은 환불 대상에서 제외됩니다
   </div>
+
+  <div class="refund-rule">
+    <img src="https://lh7-rt.googleusercontent.com/formsz/AN7BsVDeI7smjVlHwL8_d6Zc_MkTsWBGTWshHxT2_6HMtU_GjABKj87WhUTTfqgFNcPmgAq5y9xc4Z_-5lCa35dCdYk9Bsv3k8HR0cgXAeG6nuTCfRdll0wyIPVCBAKbyKvWO3rcp60DCO6EMZyXJ4dBso9juGb7aP7dcQtn_A?key=LWfjAPgdvo6GlSS4x02CoQ" alt="환불규정 이미지">
+  </div>
+
+  <div class="made-by">made by sangboy</div>
 </div>
 
 <script>
-// 기본값: 오늘 날짜로 자동 설정
-const today = new Date();
-const todayStr = today.toISOString().slice(0,10);
-
-['buyDate','timeRefundDate','startDate','periodRefundDate','roomDate','roomBaseDate'].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.value = todayStr;
-});
-
 const typeEl = document.getElementById('type');
 const timeBox = document.getElementById('timeBox');
 const periodBox = document.getElementById('periodBox');
@@ -137,6 +143,21 @@ function fillTimeSelect(hId, mId) {
 
 fillTimeSelect('roomHour','roomMinute');
 fillTimeSelect('roomBaseHour','roomBaseMinute');
+
+window.addEventListener('load', () => {
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0];
+  const hours = String(now.getHours()).padStart(2,'0');
+  const minutes = String(Math.floor(now.getMinutes()/5)*5).padStart(2,'0');
+
+  document.getElementById('buyDate').value = dateStr;
+  document.getElementById('timeRefundDate').value = dateStr;
+  document.getElementById('startDate').value = dateStr;
+  document.getElementById('periodRefundDate').value = dateStr;
+  document.getElementById('roomBaseDate').value = dateStr;
+  document.getElementById('roomBaseHour').value = hours;
+  document.getElementById('roomBaseMinute').value = minutes;
+});
 
 function hideAll() {
   timeBox.style.display = 'none';
@@ -174,10 +195,6 @@ function calc() {
 
   if (type === 'time' || type === 'roomTime') {
     const total = Number(document.getElementById('timeType').value);
-    const remainInput = document.getElementById('remainHours');
-    if (remainInput.value > total) {
-      remainInput.value = total;
-    }
     const remain = Number(document.getElementById('remainHours').value);
     const buyDate = new Date(document.getElementById('buyDate').value);
     const refundBase = new Date(document.getElementById('timeRefundDate').value);
@@ -187,7 +204,6 @@ function calc() {
       return;
     }
 
-    // 환불기한 설정
     const limitMap = { 30: 15, 50: 30, 100: 60, 200: 90 };
     const limitDays = limitMap[total];
     const diffDays = (refundBase - buyDate) / (1000 * 60 * 60 * 24);
@@ -260,10 +276,5 @@ function calc() {
   reasonEl.innerText = `적용 규정: ${reason}`;
 }
 </script>
-  <div style="text-align:center; margin-top:20px;">
-    <img src="https://lh7-rt.googleusercontent.com/formsz/AN7BsVDeI7smjVlHwL8_d6Zc_MkTsWBGTWshHxT2_6HMtU_GjABKj87WhUTTfqgFNcPmgAq5y9xc4Z_-5lCa35dCdYk9Bsv3k8HR0cgXAeG6nuTCfRdll0wyIPVCBAKbyKvWO3rcp60DCO6EMZyXJ4dBso9juGb7aP7dcQtn_A?key=LWfjAPgdvo6GlSS4x02CoQ"
-         alt="환불규정 이미지"
-         style="max-width:100%; height:auto; border:1px solid #ddd; border-radius:6px; margin-top:16px;">
-  </div>
 </body>
 </html>
