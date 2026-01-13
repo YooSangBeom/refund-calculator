@@ -1,279 +1,252 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>화이트펜슬 환불 계산기</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body { font-family: Arial, sans-serif; background:#f5f6f8; padding:20px; margin:0; }
-    .card { max-width:560px; margin:auto; background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,.1); }
-    h2 { margin-top:0; }
-    label { display:block; margin-top:12px; font-weight:600; }
-    select, input { width:100%; padding:8px; margin-top:6px; }
-    button { margin-top:20px; width:100%; padding:12px; font-size:16px; border:none; border-radius:8px; background:#2563eb; color:#fff; cursor:pointer; }
-    .result { margin-top:16px; padding:12px; background:#f1f5f9; border-radius:8px; font-weight:600; }
-    .note { margin-top:12px; font-size:13px; color:#555; }
-    .warning-text { color:#d32f2f; font-weight:600; font-size:13px; }
-    .made-by { text-align:right; font-size:12px; color:#555; margin-top:10px; }
-    .refund-link { margin-top:12px; text-align:center; }
-    .refund-link a { display:inline-block; padding:10px 20px; background:#2563eb; color:#fff; border-radius:8px; text-decoration:none; font-weight:600; }
-    .refund-rule { margin-top:20px; text-align:center; }
-    .refund-rule img { max-width:100%; border-radius:8px; }
-  </style>
+<meta charset="UTF-8">
+<title>화이트펜슬 환불 계산기</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { font-family: Arial, sans-serif; background:#f5f6f8; padding:20px; }
+.card { max-width:560px; margin:auto; background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,.1); position:relative;}
+h2 { margin-top:0; }
+label { display:block; margin-top:12px; font-weight:600; }
+select, input { width:100%; padding:8px; margin-top:6px; }
+button { margin-top:20px; width:100%; padding:12px; font-size:16px; border:none; border-radius:8px; background:#2563eb; color:#fff; cursor:pointer; }
+.result { margin-top:16px; padding:12px; background:#f1f5f9; border-radius:8px; font-weight:600; color:#FF4500; }
+.note { margin-top:12px; font-size:13px; color:#555; }
+.redNote { color:red; font-weight:600; margin-top:6px; }
+img { width:100%; margin-top:12px; border-radius:8px; }
+.footer { margin-top:20px; text-align:right; font-size:12px; color:#555; }
+</style>
 </head>
 <body>
 <div class="card">
-  <h2>화이트펜슬 환불 계산기</h2>
+<h2>화이트펜슬 환불 계산기</h2>
 
-  <label>이용권 종류</label>
-  <select id="type">
-    <option value="day">당일권</option>
-    <option value="time">시간권</option>
-    <option value="period">기간권(고정권)</option>
-    <option value="room">스터디룸</option>
-    <option value="roomTime">스터디룸 시간권</option>
+<label>이용권 종류</label>
+<select id="type">
+  <option value="day">당일권</option>
+  <option value="time">시간권</option>
+  <option value="period">기간권(고정권)</option>
+  <option value="room">스터디룸</option>
+  <option value="roomTime">스터디룸 시간권</option>
+</select>
+
+<label>결제 금액 (원)</label>
+<input type="number" id="price" placeholder="예: 300000" />
+
+<!-- 시간권 -->
+<div id="timeBox" style="display:none;">
+  <label>시간권 종류</label>
+  <select id="timeType">
+    <option value="30">30시간권</option>
+    <option value="50">50시간권</option>
+    <option value="100">100시간권</option>
+    <option value="200">200시간권</option>
   </select>
+  <label>구매일</label>
+  <input type="date" id="buyDate" />
+  <label>환불 기준일</label>
+  <input type="date" id="timeRefundDate" />
+  <label>잔여 시간</label>
+  <input type="number" id="remainHours" />
+  <div class="redNote">※ 최종 구매 이용권 구매 이후 사용시간을 제외한 시간을 입력해주세요.(재구매를 통한 이전 만료이용권의 시간은 환불대상이 아닙니다)</div>
+</div>
 
-  <label>결제 금액 (원)</label>
-  <input type="number" id="price" placeholder="예: 300000" />
+<!-- 기간권 -->
+<div id="periodBox" style="display:none;">
+  <label>기간권 종류</label>
+  <select id="periodType">
+    <option value="14">2주 이용권</option>
+    <option value="28">4주 이용권</option>
+    <option value="56">8주 이용권</option>
+    <option value="84">12주 이용권</option>
+  </select>
+  <label>시작일</label>
+  <input type="date" id="startDate" />
+  <label>환불 기준일</label>
+  <input type="date" id="periodRefundDate" />
+</div>
 
-  <!-- 시간권 -->
-  <div id="timeBox" style="display:none;">
-    <label>시간권 종류</label>
-    <select id="timeType">
-      <option value="30">30시간권</option>
-      <option value="50">50시간권</option>
-      <option value="100">100시간권</option>
-      <option value="200">200시간권</option>
-    </select>
-
-    <label>구매일</label>
-    <input type="date" id="buyDate" />
-
-    <label>환불 기준일</label>
-    <input type="date" id="timeRefundDate" />
-
-    <label>잔여 시간</label>
-    <input type="number" id="remainHours" />
-    <div class="warning-text">※ 최종 구매 이용권 구매 이후 사용시간을 제외한 시간을 입력해주세요.(재구매를 통한 이전 만료이용권의 시간은 환불대상이 아닙니다)</div>
+<!-- 스터디룸 -->
+<div id="roomBox" style="display:none;">
+  <label>예약일</label>
+  <input type="date" id="roomDate" />
+  <label>예약 시간</label>
+  <div style="display:flex; gap:8px;">
+    <select id="roomHour"></select>
+    <span>:</span>
+    <select id="roomMinute"></select>
   </div>
-
-  <!-- 기간권 -->
-  <div id="periodBox" style="display:none;">
-    <label>기간권 종류</label>
-    <select id="periodType">
-      <option value="14">2주 이용권</option>
-      <option value="28">4주 이용권</option>
-      <option value="56">8주 이용권</option>
-      <option value="84">12주 이용권</option>
-    </select>
-
-    <label>시작일</label>
-    <input type="date" id="startDate" />
-
-    <label>환불 기준일</label>
-    <input type="date" id="periodRefundDate" />
+  <label>환불 기준일</label>
+  <input type="date" id="roomBaseDate" />
+  <label>환불 기준 시간</label>
+  <div style="display:flex; gap:8px;">
+    <select id="roomBaseHour"></select>
+    <span>:</span>
+    <select id="roomBaseMinute"></select>
   </div>
+</div>
 
-  <!-- 스터디룸 -->
-  <div id="roomBox" style="display:none;">
-    <label>예약일</label>
-    <input type="date" id="roomDate" />
+<!-- 스터디룸 시간권 -->
+<div id="roomTimeBox" style="display:none;">
+  <label>스터디룸 시간권 종류</label>
+  <select id="roomTimeType">
+    <option value="20">20시간권</option>
+    <option value="30">30시간권</option>
+  </select>
+  <label>구매일</label>
+  <input type="date" id="roomTimeBuyDate" />
+  <label>환불 기준일</label>
+  <input type="date" id="roomTimeRefundDate" />
+  <label>잔여 시간</label>
+  <input type="number" id="roomTimeRemainHours" />
+  <div class="redNote">※ 최종 구매 이용권 구매 이후 사용시간을 제외한 시간을 입력해주세요.(재구매를 통한 이전 만료이용권의 시간은 환불대상이 아닙니다)</div>
+</div>
 
-    <label>예약 시간</label>
-    <div style="display:flex; gap:8px;">
-      <select id="roomHour"></select>
-      <span>:</span>
-      <select id="roomMinute"></select>
-    </div>
+<button onclick="calc()">환불 금액 계산</button>
+<div class="result" id="result">환불 금액: -</div>
+<div class="result" id="reason" style="font-weight:500; font-size:14px;">적용 규정: -</div>
 
-    <label>환불 기준일</label>
-    <input type="date" id="roomBaseDate" />
+<a href="https://forms.gle/Gwgs2sKAMzU4MDBw9" target="_blank">
+<button style="background:#10b981;">환불 접수하기</button>
+</a>
 
-    <label>환불 기준 시간</label>
-    <div style="display:flex; gap:8px;">
-      <select id="roomBaseHour"></select>
-      <span>:</span>
-      <select id="roomBaseMinute"></select>
-    </div>
-  </div>
+<div class="note">
+  * 당일권은 환불 불가<br>
+  * 사용률 50% 이상은 환불 불가<br>
+  * 연장으로 합산된 시간은 환불 대상에서 제외됩니다
+</div>
 
-  <button onclick="calc()">환불 금액 계산</button>
+<img src="https://lh7-rt.googleusercontent.com/formsz/AN7BsVDeI7smjVlHwL8_d6Zc_MkTsWBGTWshHxT2_6HMtU_GjABKj87WhUTTfqgFNcPmgAq5y9xc4Z_-5lCa35dCdYk9Bsv3k8HR0cgXAeG6nuTCfRdll0wyIPVCBAKbyKvWO3rcp60DCO6EMZyXJ4dBso9juGb7aP7dcQtn_A?key=LWfjAPgdvo6GlSS4x02CoQ" alt="환불 규정 이미지">
 
-  <div class="result" id="result">환불 금액: -</div>
-  <div class="result" id="reason" style="font-weight:600; font-size:14px; color:#d32f2f;">적용 규정: -</div>
-
-  <div class="refund-link">
-    <a href="https://forms.gle/Gwgs2sKAMzU4MDBw9" target="_blank">환불접수하기</a>
-  </div>
-
-  <div class="note">
-    * 당일권은 환불 불가<br>
-    * 사용률 50% 이상은 환불 불가<br>
-    * 연장으로 합산된 시간은 환불 대상에서 제외됩니다
-  </div>
-
-  <div class="refund-rule">
-    <img src="https://lh7-rt.googleusercontent.com/formsz/AN7BsVDeI7smjVlHwL8_d6Zc_MkTsWBGTWshHxT2_6HMtU_GjABKj87WhUTTfqgFNcPmgAq5y9xc4Z_-5lCa35dCdYk9Bsv3k8HR0cgXAeG6nuTCfRdll0wyIPVCBAKbyKvWO3rcp60DCO6EMZyXJ4dBso9juGb7aP7dcQtn_A?key=LWfjAPgdvo6GlSS4x02CoQ" alt="환불규정 이미지">
-  </div>
-
-  <div class="made-by">made by sangboy</div>
+<div class="footer">made by sangboy</div>
 </div>
 
 <script>
-const typeEl = document.getElementById('type');
-const timeBox = document.getElementById('timeBox');
-const periodBox = document.getElementById('periodBox');
-const roomBox = document.getElementById('roomBox');
-const resultEl = document.getElementById('result');
-const reasonEl = document.getElementById('reason');
+const typeEl=document.getElementById('type');
+const timeBox=document.getElementById('timeBox');
+const periodBox=document.getElementById('periodBox');
+const roomBox=document.getElementById('roomBox');
+const roomTimeBox=document.getElementById('roomTimeBox');
+const resultEl=document.getElementById('result');
+const reasonEl=document.getElementById('reason');
 
-function fillTimeSelect(hId, mId) {
-  const h = document.getElementById(hId);
-  const m = document.getElementById(mId);
-  for (let i = 0; i < 24; i++) {
-    const v = String(i).padStart(2,'0');
-    h.innerHTML += `<option value="${v}">${v}</option>`;
-  }
-  for (let i = 0; i < 60; i += 5) {
-    const v = String(i).padStart(2,'0');
-    m.innerHTML += `<option value="${v}">${v}</option>`;
-  }
+function fillTimeSelect(hId,mId){
+  const h=document.getElementById(hId);
+  const m=document.getElementById(mId);
+  h.innerHTML=''; m.innerHTML='';
+  for(let i=0;i<24;i++){const v=String(i).padStart(2,'0'); h.innerHTML+=`<option value="${v}">${v}</option>`;}
+  for(let i=0;i<60;i+=5){const v=String(i).padStart(2,'0'); m.innerHTML+=`<option value="${v}">${v}</option>`;}
 }
-
 fillTimeSelect('roomHour','roomMinute');
 fillTimeSelect('roomBaseHour','roomBaseMinute');
 
-window.addEventListener('load', () => {
-  const now = new Date();
-  const dateStr = now.toISOString().split('T')[0];
-  const hours = String(now.getHours()).padStart(2,'0');
-  const minutes = String(Math.floor(now.getMinutes()/5)*5).padStart(2,'0');
+function hideAll(){timeBox.style.display='none'; periodBox.style.display='none'; roomBox.style.display='none'; roomTimeBox.style.display='none';}
 
-  document.getElementById('buyDate').value = dateStr;
-  document.getElementById('timeRefundDate').value = dateStr;
-  document.getElementById('startDate').value = dateStr;
-  document.getElementById('periodRefundDate').value = dateStr;
-  document.getElementById('roomBaseDate').value = dateStr;
-  document.getElementById('roomBaseHour').value = hours;
-  document.getElementById('roomBaseMinute').value = minutes;
+typeEl.addEventListener('change',()=>{
+  hideAll();
+  resultEl.innerText='환불 금액: -';
+  reasonEl.innerText='적용 규정: -';
+  if(typeEl.value==='day'){resultEl.innerText='환불 금액: 0 원'; reasonEl.innerText='적용 규정: 당일권은 환불 불가'; return;}
+  if(typeEl.value==='time') timeBox.style.display='block';
+  if(typeEl.value==='period') periodBox.style.display='block';
+  if(typeEl.value==='room') roomBox.style.display='block';
+  if(typeEl.value==='roomTime') roomTimeBox.style.display='block';
 });
 
-function hideAll() {
-  timeBox.style.display = 'none';
-  periodBox.style.display = 'none';
-  roomBox.style.display = 'none';
+// 기본값 현재시간
+function setToday(id){ 
+    const d=new Date(); 
+    document.getElementById(id).value=d.toISOString().slice(0,10); 
 }
 
-typeEl.addEventListener('change', () => {
-  hideAll();
-  if (typeEl.value === 'day') {
-    resultEl.innerText = '환불 금액: 0 원';
-    reasonEl.innerText = '적용 규정: 당일권은 환불 불가';
-    return;
-  }
-  if (typeEl.value === 'time' || typeEl.value === 'roomTime') timeBox.style.display = 'block';
-  if (typeEl.value === 'period') periodBox.style.display = 'block';
-  if (typeEl.value === 'room') roomBox.style.display = 'block';
-});
+// 스터디룸 환불 기준일 및 시간 기본값
+function setRoomBaseNow(){
+    const now=new Date();
+    document.getElementById('roomBaseDate').value=now.toISOString().slice(0,10);
+    document.getElementById('roomBaseHour').value=String(now.getHours()).padStart(2,'0');
+    let m=Math.ceil(now.getMinutes()/5)*5; 
+    if(m===60){ m=55; } 
+    document.getElementById('roomBaseMinute').value=String(m).padStart(2,'0');
+}
 
-function calc() {
-  const type = typeEl.value;
-  const price = Number(document.getElementById('price').value);
-  let refund = 0;
-  let reason = '';
+// 날짜 기본값
+['buyDate','timeRefundDate','startDate','periodRefundDate','roomDate','roomTimeBuyDate','roomTimeRefundDate'].forEach(setToday);
+setRoomBaseNow();
 
-  if (!price || price <= 0) {
-    alert('결제 금액을 입력해주세요');
-    return;
-  }
+function calc(){
+  const type=typeEl.value;
+  const price=Number(document.getElementById('price').value);
+  if(!price||price<=0){alert('결제 금액을 입력해주세요');return;}
+  let refund=0; let reason='';
 
-  if (type === 'day') {
-    refund = 0;
-    reason = '당일권은 환불 불가';
-  }
+  // 당일권
+  if(type==='day'){refund=0; reason='당일권은 환불 불가';}
 
-  if (type === 'time' || type === 'roomTime') {
-    const total = Number(document.getElementById('timeType').value);
-    const remain = Number(document.getElementById('remainHours').value);
-    const buyDate = new Date(document.getElementById('buyDate').value);
-    const refundBase = new Date(document.getElementById('timeRefundDate').value);
-
-    if (isNaN(total) || isNaN(remain) || !buyDate || !refundBase) {
-      alert('시간권 정보를 모두 입력해주세요');
-      return;
-    }
-
-    const limitMap = { 30: 15, 50: 30, 100: 60, 200: 90 };
-    const limitDays = limitMap[total];
-    const diffDays = (refundBase - buyDate) / (1000 * 60 * 60 * 24);
-
-    if (diffDays > limitDays) {
-      refund = 0;
-      reason = `시간권 환불기한 초과 (${limitDays}일) → 환불 불가`;
-    } else {
-      const usage = ((total - remain) / total) * 100;
-      if (usage < 25) {
-        refund = price * 0.5;
-        reason = '사용률 0% 이상 ~ 25% 미만 → 50% 환불';
-      } else if (usage < 50) {
-        refund = price * 0.25;
-        reason = '사용률 25% 이상 ~ 50% 미만 → 25% 환불';
-      } else {
-        refund = 0;
-        reason = '사용률 50% 이상 → 환불 불가';
-      }
+  // 시간권
+  if(type==='time'){
+    const total=Number(document.getElementById('timeType').value);
+    let remain=Number(document.getElementById('remainHours').value);
+    if(remain>total){remain=total; document.getElementById('remainHours').value=total;}
+    const buyDate=new Date(document.getElementById('buyDate').value);
+    const refundBase=new Date(document.getElementById('timeRefundDate').value);
+    const limitMap={30:15,50:30,100:60,200:90}; const limitDays=limitMap[total];
+    const diffDays=Math.floor((refundBase-buyDate)/(1000*60*60*24))+1;
+    if(diffDays>limitDays){refund=0; reason=`시간권 환불기한 초과 (${limitDays}일) → 환불 불가`;}
+    else{
+      const usage=((total-remain)/total)*100;
+      if(usage<25){refund=price*0.5; reason='사용률 0% 이상 ~ 25% 미만 → 50% 환불';}
+      else if(usage<50){refund=price*0.25; reason='사용률 25% 이상 ~ 50% 미만 → 25% 환불';}
+      else{refund=0; reason='사용률 50% 이상 → 환불 불가';}
     }
   }
 
-  if (type === 'period') {
-    const totalDays = Number(document.getElementById('periodType').value);
-    const start = new Date(document.getElementById('startDate').value);
-    const base = new Date(document.getElementById('periodRefundDate').value);
-    const usedDays = (base - start) / (1000*60*60*24);
-    const usage = (usedDays / totalDays) * 100;
-
-    if (usage < 25) {
-      refund = price * 0.5;
-      reason = '기간권 사용률 0% 이상 ~ 25% 미만 → 50% 환불';
-    } else if (usage < 50) {
-      refund = price * 0.25;
-      reason = '기간권 사용률 25% 이상 ~ 50% 미만 → 25% 환불';
-    } else {
-      refund = 0;
-      reason = '기간권 사용률 50% 이상 → 환불 불가';
-    }
+  // 기간권
+  if(type==='period'){
+    const totalDays=Number(document.getElementById('periodType').value);
+    const start=new Date(document.getElementById('startDate').value);
+    const base=new Date(document.getElementById('periodRefundDate').value);
+    const usedDays=Math.floor((base-start)/(1000*60*60*24))+1; // 시작일 1일차 포함
+    const usage=(usedDays/totalDays)*100;
+    if(usage<25){refund=price*0.5; reason='기간권 사용률 0% 이상 ~ 25% 미만 → 50% 환불';}
+    else if(usage<50){refund=price*0.25; reason='기간권 사용률 25% 이상 ~ 50% 미만 → 25% 환불';}
+    else{refund=0; reason='기간권 사용률 50% 이상 → 환불 불가';}
   }
 
-  if (type === 'room') {
-    const rDate = document.getElementById('roomDate').value;
-    const rh = document.getElementById('roomHour').value;
-    const rm = document.getElementById('roomMinute').value;
-    const bDate = document.getElementById('roomBaseDate').value;
-    const bh = document.getElementById('roomBaseHour').value;
-    const bm = document.getElementById('roomBaseMinute').value;
-
-    const reserve = new Date(`${rDate}T${rh}:${rm}:00`);
-    const base = new Date(`${bDate}T${bh}:${bm}:00`);
-    const diff = (reserve - base) / (1000*60*60);
-
-    if (diff >= 48) {
-      refund = price;
-      reason = '스터디룸: 입장 48시간 이전 → 100% 환불';
-    } else if (diff >= 24) {
-      refund = price * 0.5;
-      reason = '스터디룸: 입장 24시간 이전 → 50% 환불';
-    } else if (diff >= 6) {
-      refund = price * 0.25;
-      reason = '스터디룸: 입장 6시간 이전 → 25% 환불';
-    } else {
-      refund = 0;
-      reason = '스터디룸: 입장 6시간 미만 → 환불 불가';
-    }
+  // 스터디룸
+  if(type==='room'){
+    const rDate=document.getElementById('roomDate').value;
+    const rh=document.getElementById('roomHour').value;
+    const rm=document.getElementById('roomMinute').value;
+    const bDate=document.getElementById('roomBaseDate').value;
+    const bh=document.getElementById('roomBaseHour').value;
+    const bm=document.getElementById('roomBaseMinute').value;
+    const reserve=new Date(`${rDate}T${rh}:${rm}:00`);
+    const base=new Date(`${bDate}T${bh}:${bm}:00`);
+    const diff=(reserve-base)/(1000*60*60);
+    if(diff>=48){refund=price; reason='입장 48시간 이전 → 100% 환불';}
+    else if(diff>=24){refund=price*0.5; reason='입장 24시간 이전 → 50% 환불';}
+    else if(diff>=6){refund=price*0.25; reason='입장 6시간 이전 → 25% 환불';}
+    else{refund=0; reason='입장 6시간 미만 → 환불 불가';}
   }
 
-  resultEl.innerText = `환불 금액: ${refund.toLocaleString()} 원`;
-  reasonEl.innerText = `적용 규정: ${reason}`;
+  // 스터디룸 시간권
+  if(type==='roomTime'){
+    const total=Number(document.getElementById('roomTimeType').value);
+    let remain=Number(document.getElementById('roomTimeRemainHours').value);
+    if(remain>total){remain=total; document.getElementById('roomTimeRemainHours').value=total;}
+    const usage=((total-remain)/total)*100;
+    const buyDate=new Date(document.getElementById('roomTimeBuyDate').value);
+    const refundBase=new Date(document.getElementById('roomTimeRefundDate').value);
+    const diffDays=Math.floor((refundBase-buyDate)/(1000*60*60*24))+1;
+    if(diffDays>365){refund=0; reason='환불기한 초과 (365일) → 환불 불가';}
+    else if(usage<25){refund=price*0.5; reason='사용률 0% 이상 ~ 25% 미만 → 50% 환불';}
+    else if(usage<50){refund=price*0.25; reason='사용률 25% 이상 ~ 50% 미만 → 25% 환불';}
+    else{refund=0; reason='사용률 50% 이상 → 환불 불가';}
+  }
+
+  resultEl.innerText=`환불 금액: ${refund.toLocaleString()} 원`;
+  reasonEl.innerText=`적용 규정: ${reason}`;
 }
 </script>
 </body>
