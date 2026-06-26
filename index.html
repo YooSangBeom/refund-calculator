@@ -18,6 +18,29 @@ button { margin-top:20px; width:100%; padding:12px; font-size:16px; border:none;
 .redNote { color:red; font-weight:600; margin-top:6px; font-size:13px; }
 img { width:100%; margin-top:12px; border-radius:8px; }
 .footer { margin-top:20px; text-align:right; font-size:12px; color:#555; }
+
+/* ── 하단 방문자 카운터 ── */
+.visit-counter {
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid #e5e7eb;
+  text-align:right;
+  font-size:12px;
+  color:#555;
+}
+.visit-counter span {
+  display:inline-block;
+  margin-right:6px;
+  font-weight:600;
+}
+.visit-counter img {
+  width:auto !important;
+  height:20px;
+  margin-top:0;
+  border-radius:0;
+  display:inline-block;
+  vertical-align:middle;
+}
 </style>
 </head>
 <body>
@@ -143,6 +166,14 @@ img { width:100%; margin-top:12px; border-radius:8px; }
      class="refund-policy">
 
 <div class="footer">made by sangboy</div>
+
+<!-- 하단 방문자 카운터 -->
+<div class="visit-counter">
+  <span>방문현황</span>
+  <img
+    src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Fyoosangbeom.github.io%2Frefund-calculator%2F&label=%EB%B0%A9%EB%AC%B8&icon=people-fill&color=%232563eb&style=flat&tz=Asia%2FSeoul"
+    alt="화이트펜슬 환불 계산기 방문자 카운터">
+</div>
 </div>
 
 <script>
