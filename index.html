@@ -63,11 +63,13 @@ img { width:100%; margin-top:12px; border-radius:8px; }
 <div id="timeBox" style="display:none;">
   <label for="timeType">시간권 종류</label>
   <select id="timeType">
-    <option value="30">30시간권</option>
-    <option value="50">50시간권</option>
-    <option value="100">100시간권</option>
-    <option value="200">200시간권</option>
+    <option value="30" data-hours="30" data-limit="15">30시간권</option>
+    <option value="50" data-hours="50" data-limit="30">50시간권</option>
+    <option value="100" data-hours="100" data-limit="60">100시간권</option>
+    <option value="200" data-hours="200" data-limit="90">200시간권</option>
+    <option value="event100plus100" data-hours="200" data-limit="30" data-valid="120">100시간+100시간(이벤트)</option>
   </select>
+  <div class="note" id="timeTypeInfo" style="display:none;"></div>
   <label for="buyDate">구매일</label>
   <input type="date" id="buyDate" />
   <label for="timeRefundDate">환불 기준일</label>
@@ -85,6 +87,7 @@ img { width:100%; margin-top:12px; border-radius:8px; }
     <option value="28">4주 이용권</option>
     <option value="56">8주 이용권</option>
     <option value="84">12주 이용권</option>
+    <option value="336">48주 이용권</option>
   </select>
   <label for="startDate">시작일</label>
   <input type="date" id="startDate" />
@@ -107,7 +110,7 @@ img { width:100%; margin-top:12px; border-radius:8px; }
     </select>
     <label for="periodNormalPrice">4주 정상가 (원)</label>
     <input type="number" id="periodNormalPrice" min="0" readonly placeholder="지점/상품유형 선택 시 자동입력" />
-    <div class="redNote">※ 8주/12주권은 할인 적용 상품입니다. 이미 지난 4주 구간은 결제금액이 아닌 '4주 정상가' 기준으로 소진 처리되고, 진행 중인 마지막 4주 구간에만 사용률(25%/50%) 규정이 적용됩니다.</div>
+    <div class="redNote">※ 8주/12주/48주권은 할인 적용 상품입니다. 이미 지난 4주 구간은 결제금액이 아닌 '4주 정상가' 기준으로 소진 처리되고, 진행 중인 마지막 4주 구간에만 사용률(25%/50%) 규정이 적용됩니다.</div>
   </div>
 </div>
 
@@ -233,6 +236,22 @@ function togglePeriodNormalPriceBox(){
 }
 periodTypeEl.addEventListener('change', togglePeriodNormalPriceBox);
 
+// 시간권 종류별 안내 (유효기간이 별도로 정해진 상품만 표시)
+const timeTypeEl=document.getElementById('timeType');
+const timeTypeInfo=document.getElementById('timeTypeInfo');
+function updateTimeTypeInfo(){
+  const opt=timeTypeEl.selectedOptions[0];
+  const valid=opt.dataset.valid;
+  if(valid){
+    timeTypeInfo.innerHTML=`※ 유효기간 ${valid}일 / 환불 가능 기간: 구매일로부터 ${opt.dataset.limit}일 이내`;
+    timeTypeInfo.style.display='block';
+  } else {
+    timeTypeInfo.style.display='none';
+  }
+}
+timeTypeEl.addEventListener('change', updateTimeTypeInfo);
+updateTimeTypeInfo();
+
 function resetResult(){
   resultEl.innerText='환불 금액: -';
   reasonEl.innerText='적용 규정: -';
@@ -313,13 +332,15 @@ function calc(){
   if(type==='time'){
     const remainInput=document.getElementById('remainHours').value;
     if(remainInput===''){alert('잔여 시간을 입력해주세요'); return;}
-    const total=Number(document.getElementById('timeType').value);
+    // 시간/환불기한은 option의 data 속성에서 읽음 (같은 200시간이어도 상품별 기한이 다름)
+    const timeOpt=document.getElementById('timeType').selectedOptions[0];
+    const total=Number(timeOpt.dataset.hours);
     let remain=Number(remainInput);
     if(remain<0){remain=0; document.getElementById('remainHours').value=0;}
     if(remain>total){remain=total; document.getElementById('remainHours').value=total;}
     const buyDate=new Date(document.getElementById('buyDate').value);
     const refundBase=new Date(document.getElementById('timeRefundDate').value);
-    const limitMap={30:15,50:30,100:60,200:90}; const limitDays=limitMap[total];
+    const limitDays=Number(timeOpt.dataset.limit);
     const diffDays=Math.floor((refundBase-buyDate)/(1000*60*60*24))+1;
     if(diffDays>limitDays){refund=0; reason=`시간권 환불기한 초과 (${limitDays}일) → 환불 불가`;}
     else{
@@ -369,15 +390,22 @@ function calc(){
       refund=Math.max(price-usedValueAtNormalPrice, 0);
       refund=Math.min(refund, price);
 
-      // 블록별 실제 이용기간(날짜) 표시
+      // 블록별 실제 이용기간(날짜) 표시 (48주권처럼 블록이 많으면 완료/예정 구간은 묶어서 표시)
       const blockLines=[];
-      for(let i=0;i<numBlocks;i++){
-        const bStart=addDays(start,i*blockSize);
-        const bEnd=addDays(start,i*blockSize+blockSize-1);
-        const label=`${i+1}차(4주): ${formatDate(bStart)} ~ ${formatDate(bEnd)}`;
-        if(i<completedBlocks) blockLines.push(`${label} → 소진완료`);
-        else if(i===completedBlocks) blockLines.push(`${label} → 진행중 (사용률 ${usageInBlock.toFixed(1)}%, ${blockLabel})`);
-        else blockLines.push(`${label} → 예정`);
+      const blockRange=(i,j)=>`${formatDate(addDays(start,i*blockSize))} ~ ${formatDate(addDays(start,j*blockSize+blockSize-1))}`;
+      const currentLine=`${completedBlocks+1}차(4주): ${blockRange(completedBlocks,completedBlocks)} → 진행중 (사용률 ${usageInBlock.toFixed(1)}%, ${blockLabel})`;
+      if(numBlocks>3){
+        if(completedBlocks>0) blockLines.push(`1~${completedBlocks}차(4주×${completedBlocks}): ${blockRange(0,completedBlocks-1)} → 소진완료`);
+        blockLines.push(currentLine);
+        const restBlocks=numBlocks-completedBlocks-1;
+        if(restBlocks>0) blockLines.push(`${completedBlocks+2}~${numBlocks}차(4주×${restBlocks}): ${blockRange(completedBlocks+1,numBlocks-1)} → 예정`);
+      } else {
+        for(let i=0;i<numBlocks;i++){
+          const label=`${i+1}차(4주): ${blockRange(i,i)}`;
+          if(i<completedBlocks) blockLines.push(`${label} → 소진완료`);
+          else if(i===completedBlocks) blockLines.push(currentLine);
+          else blockLines.push(`${label} → 예정`);
+        }
       }
 
       reason=`${blockLines.join('<br>')}<br>정상가(${normalPrice.toLocaleString()}원) 기준 소진액 ${Math.round(usedValueAtNormalPrice).toLocaleString()}원 / 결제금액 ${price.toLocaleString()}원 → 환불 ${refund.toLocaleString()}원`;
